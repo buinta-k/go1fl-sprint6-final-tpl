@@ -37,7 +37,7 @@ func HandleTwo(w http.ResponseWriter, req *http.Request) {
 	}
 	inputString := string(fileBytes)
 
-	resultString, err := service.AutoConvert(inputString)
+	resultString, err := service.Converter(inputString)
 	if err != nil {
 		http.Error(w, "Ошибка конвертации: "+err.Error(), http.StatusInternalServerError)
 		return
