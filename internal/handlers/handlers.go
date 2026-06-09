@@ -23,45 +23,30 @@ func HandleOne(w http.ResponseWriter, req *http.Request) {
 }
 
 func HandleTwo(w http.ResponseWriter, req *http.Request) {
-	var inputString string
-
 	file, header, err := req.FormFile("file")
-	
-	if err == nil {
-		defer file.Close() 
-		fileBytes, readErr := io.ReadAll(file)
-		if readErr == nil {
-			inputString = string(fileBytes)
-		}
+	if err != nil {
+		http.Error(w, "Ошибка получения файла: "+err.Error(), http.StatusBadRequest)
+		return
 	}
+	defer file.Close() 
 
-	if inputString == "" {
-		bodyBytes, err := io.ReadAll(req.Body)
-		
-		if err != nil || len(bodyBytes) == 0 {
-			http.Error(w, "Данные запроса пусты", http.StatusBadRequest)
-			return
-		}
-		inputString = string(bodyBytes)
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		http.Error(w, "Ошибка чтения файла", http.StatusInternalServerError)
+		return
 	}
+	inputString := string(fileBytes)
 
-	
-	resultString, err := service.Converter(inputString)
+	resultString, err := service.AutoConvert(inputString)
 	if err != nil {
 		http.Error(w, "Ошибка конвертации: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	var ext string
-	if header != nil {
-		ext = filepath.Ext(header.Filename)
-	}
-
+	ext := filepath.Ext(header.Filename)
 	if ext == "" {
 		ext = ".txt"
 	}
-
-
 	currentTime := time.Now().UTC().Format("20060102150405")
 	newFileName := currentTime + ext
 
@@ -72,7 +57,9 @@ func HandleTwo(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK) 
 	w.Write([]byte(resultString))
+}
+
 }
 
