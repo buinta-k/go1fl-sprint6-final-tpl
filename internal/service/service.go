@@ -12,9 +12,9 @@ func Converter(s string) (string, error) {
 	var res string
 
 	if strings.ContainsAny(s, Text) {
-		res = morse.ToText(s)
-	} else {
 		res = morse.ToMorse(s)
+	} else {
+		res = morse.ToText(s)
 	}
 
 	return res, nil
