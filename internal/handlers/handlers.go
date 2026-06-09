@@ -1,14 +1,18 @@
 package handlers
 
-import {
+import (
+	"io"
 	"net/http"
 	"os"
-	"io"
-}
+	"path/filepath"
+	"time"
 
-func handleOne (res http.ResponseWriter, req http.Request) {
-	data, err:=os.ReadFile("index.html")
-	if err!=nil {
+	"github.com/Yandex-Practicum/go1fl-sprint6-final/internal/service"
+)
+
+func HandleOne(w http.ResponseWriter, req *http.Request) {
+	data, err := os.ReadFile("index.html")
+	if err != nil {
 		http.Error(w, "Файл не найден", http.StatusNotFound)
 		return
 	}
@@ -17,34 +21,34 @@ func handleOne (res http.ResponseWriter, req http.Request) {
 	w.Write(data)
 }
 
-func handleTwo (w http.ResponseWriter, req http.Request) {
-	file, header, err:=req.FormFile("file")
-	if err!=nil {
+func HandleTwo(w http.ResponseWriter, req *http.Request) {
+	file, header, err := req.FormFile("file")
+	if err != nil {
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
-	fileBytes, err:=io.ReadAll(file)
-	if err!=nil {
-		http.Error(w, "Ошибка чтения файла", http.StatusInternaLServerError)
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		http.Error(w, "Ошибка чтения файла", http.StatusInternalServerError)
 		return
 	}
-	inputString:=string(fileBytes)
+	inputString := string(fileBytes)
 
-	resultString, err:=service.AutoConvert(inputString)
-	if err!=nil {
-		http.Error(w, "Ошибка конвертации: " + err.Error(), http.StatusInternalServerError)
+	resultString, err := service.Converter(inputString)
+	if err != nil {
+		http.Error(w, "Ошибка конвертации: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	ext:=filepath.Ext(header.Filename)
-	currentTime:=time.Now().UTC().String()
+	ext := filepath.Ext(header.Filename)
+	currentTime := time.Now().UTC().String()
 
-	newFileName:=currentTime + ext
+	newFileName := currentTime + ext
 
-	err=os.WriteFile(newFileName, []byte(resultString), 0644)
-	if err!=nil {
+	err = os.WriteFile(newFileName, []byte(resultString), 0644)
+	if err != nil {
 		http.Error(w, "Не удалось сохранить файл на сервер", http.StatusInternalServerError)
 	}
 
@@ -52,4 +56,3 @@ func handleTwo (w http.ResponseWriter, req http.Request) {
 
 	w.Write([]byte(resultString))
 }
-
