@@ -14,10 +14,10 @@ type Server struct {
 }
 
 func New(logger *log.Logger) *Server {
-	mux := http.NewServerMux()
+	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", handlers.HandleOne)
-	mux.HandleFunc("upload", handlers.HandleTwo)
+	mux.HandleFunc("/upload", handlers.HandleTwo)
 
 	httpServer := &http.Server{
 		Addr:         ":8080",
@@ -29,7 +29,7 @@ func New(logger *log.Logger) *Server {
 	}
 
 	return &Server{
-		logger: logger,
+		logger: *logger,
 		server: httpServer,
 	}
 
