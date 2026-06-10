@@ -13,7 +13,7 @@ import (
 func HandleOne(w http.ResponseWriter, req *http.Request) {
 	data, err := os.ReadFile("index.html")
 	if err != nil {
-		http.Error(w, "Файл не найден", http.StatusNotFound)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -21,53 +21,39 @@ func HandleOne(w http.ResponseWriter, req *http.Request) {
 }
 
 func HandleTwo(w http.ResponseWriter, req *http.Request) {
-	var inputString string
-	var filename string
-
 	file, header, err := req.FormFile("file")
-	if err == nil {
-		defer file.Close()
-		fileBytes, readErr := io.ReadAll(file)
-		if readErr == nil {
-			inputString = string(fileBytes)
-			filename = header.Filename
-		}
-	}
-
-	if inputString == "" {
-		bodyBytes, err := io.ReadAll(req.Body)
-		if err == nil && len(bodyBytes) > 0 {
-			inputString = string(bodyBytes)
-		}
-	}
-
-	if inputString == "" {
-		http.Error(w, "Данные запроса пусты", http.StatusBadRequest)
-		return
-	}
-
-	resultString, err := service.Converter(inputString)
 	if err != nil {
-		http.Error(w, "Ошибка конвертации: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Ошибка получения файла: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close() // Закрываем файл, как просит ТЗ
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		http.Error(w, "Ошибка чтения файла", http.StatusInternalServerError)
+		return
+	}
+	inputString := string(fileBytes)
+
+	resultString, err := service.AutoConvert(inputString)
+	if err != nil {
+		http.Error(w, "Ошибка конвертации", http.StatusInternalServerError)
 		return
 	}
 
-	ext := filepath.Ext(filename)
-	if ext == "" {
-		ext = ".txt"
-	}
-	currentTime := time.Now().UTC().Format("20060102150405")
+
+	// время через time.Now().UTC().String() + расширение через filepath.Ext()
+	currentTime := time.Now().UTC().String()
+	ext := filepath.Ext(header.Filename)
 	newFileName := currentTime + ext
 
 	err = os.WriteFile(newFileName, []byte(resultString), 0644)
 	if err != nil {
-		http.Error(w, "Не удалось найти файл", http.StatusInternalServerError)
+		http.Error(w, "Не удалось сохранить файл на сервер", http.StatusInternalServerError)
 		return
 	}
 
-	// 6. Ответ
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(resultString))
 }
-
