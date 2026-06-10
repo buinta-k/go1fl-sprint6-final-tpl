@@ -21,38 +21,33 @@ func HandleOne(w http.ResponseWriter, req *http.Request) {
 }
 
 func HandleTwo(w http.ResponseWriter, req *http.Request) {
-	file, header, err := req.FormFile("file")
+	file, header, err := req.FormFile("myFile")
 	if err != nil {
-		http.Error(w, "Ошибка получения файла: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer file.Close()
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
-		http.Error(w, "Ошибка чтения файла", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	inputString := string(fileBytes)
 
-	resultString, err := service.Converter(inputString)
+	resultString, err := service.Converter(string(fileBytes))
 	if err != nil {
-		http.Error(w, "Ошибка конвертации", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-
-	// время через time.Now().UTC().String() + расширение через filepath.Ext()
-	currentTime := time.Now().UTC().String()
-	ext := filepath.Ext(header.Filename)
-	newFileName := currentTime + ext
+	newFileName := time.Now().UTC().String() + filepath.Ext(header.Filename)
 
 	err = os.WriteFile(newFileName, []byte(resultString), 0644)
 	if err != nil {
-		http.Error(w, "Не удалось сохранить файл на сервер", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(resultString))
