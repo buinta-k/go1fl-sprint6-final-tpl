@@ -26,7 +26,7 @@ func HandleTwo(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Ошибка получения файла: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer file.Close() // Закрываем файл, как просит ТЗ
+	defer file.Close()
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
@@ -35,7 +35,7 @@ func HandleTwo(w http.ResponseWriter, req *http.Request) {
 	}
 	inputString := string(fileBytes)
 
-	resultString, err := service.AutoConvert(inputString)
+	resultString, err := service.Converter(inputString)
 	if err != nil {
 		http.Error(w, "Ошибка конвертации", http.StatusInternalServerError)
 		return
