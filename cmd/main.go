@@ -19,5 +19,4 @@ func main() {
 	if err != nil {
 		logger.Fatalf("Ошибка %v", err)
 	}
-	
 }
