@@ -32,7 +32,6 @@ func New(logger *log.Logger) *Server {
 		logger: *logger,
 		server: httpServer,
 	}
-
 }
 
 func (s *Server) Start() error {
