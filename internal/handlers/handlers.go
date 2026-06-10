@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"://github.com"
+	"github.com/Yandex-Practicum/go1fl-sprint6-final/internal/service"
 )
 
 func HandleOne(w http.ResponseWriter, req *http.Request) {
@@ -46,7 +46,7 @@ func HandleTwo(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resultString, err := service.AutoConvert(inputString)
+	resultString, err := service.Converter(inputString)
 	if err != nil {
 		http.Error(w, "Ошибка конвертации: "+err.Error(), http.StatusInternalServerError)
 		return
